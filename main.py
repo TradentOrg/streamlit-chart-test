@@ -1,31 +1,44 @@
 import streamlit as st
 from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, HoverTool
+import random
+
+# Function to create random connections between points
+def random_connections(x, y):
+    connections = list(zip(x, y))
+    random.shuffle(connections)
+    x, y = zip(*connections)
+    return x, y
 
 # Sample data
 x = [0.1, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
-y1 = [i**2 for i in x]
-y2 = [10*i for i in x]
+y = [i**2 for i in x]
+
+# Randomly connecting the points
+x_rand, y_rand = random_connections(x, y)
+
+# Creating a ColumnDataSource
+source = ColumnDataSource(data=dict(x=x, y=y))
 
 # Creating a new plot
 p = figure(
-    title='Sample Data Plot',
+    title='Enhanced Plot with Tooltips and Area Chart',
     x_axis_label='X Axis Label',
-    y_axis_label='Y Axis Label')
+    y_axis_label='Y Axis Label',
+    tools="hover",  # Adding hover tool
+)
 
-# Adding a line
-p.line(x, y1, legend_label='Line 1', line_width=2, color="navy")
+# Adding lines with random connections
+p.line(x_rand, y_rand, legend_label='Random Line', line_width=2, color="green")
 
-# Adding circles
-p.circle(x, y1, size=10, color="navy", alpha=0.5)
+# Adding circles for the data points with tooltips
+p.circle('x', 'y', size=10, color="blue", alpha=0.5, source=source)
 
-# Adding a fill between the line and the x-axis
-p.varea(x=x, y1=y1, y2=y2, fill_color="purple", fill_alpha=0.4)
+# Configuring the hover tool
+p.hover.tooltips = [("X", "@x"), ("Y", "@y")]
 
-# Adding a second line
-p.line(x, y2, legend_label='Line 2', line_width=2, color="orange")
-
-# Adding crosses
-p.cross(x, y2, size=10, color="orange", alpha=0.5)
+# Adding an area chart
+p.varea(x='x', y1='y', y2=0, color="red", alpha=0.3, source=source)
 
 # Displaying the plot
 st.bokeh_chart(p, use_container_width=True)
